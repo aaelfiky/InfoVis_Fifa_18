@@ -1,0 +1,40 @@
+#chart{
+	width: 400px;
+	height:290px;
+}
+.svgRect{
+
+	fill:lightblue;
+}
+#names{
+	/*height: 250;*/
+	width:60%;
+	overflow-y: scroll; height:300px;
+}
+/*td, th {
+  padding: 1px 4px;
+}*/
+
+#table-names {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table-names td, #table-names th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#table-names tr:nth-child(even){background-color: #f2f2f2;}
+
+#table-names tr:hover {background-color: #ddd;}
+
+#table-names th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    background-color: lightblue;
+    color: white;
+}
