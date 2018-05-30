@@ -1,15 +1,39 @@
+#pie{
+    float:right;
+}
+.arc text {
+    font: 8.75px sans-serif;
+    text-anchor: middle;
+    fill: white;
+  } 
+.arc path {
+    stroke: #fff;
+  }
+  
+.arc2 text {
+    font: 10px sans-serif;
+    text-anchor: middle;
+    color: white;
+  }
+  
+.arc2 path {
+    stroke: #fff;
+  }
+
+
 #chart{
-	width: 400px;
-	height:290px;
+    width: 540px;
+    height:470px;
+    display: inline-block;
 }
 .svgRect{
 
-	fill:lightblue;
+    fill:lightblue;
 }
 #names{
-	/*height: 250;*/
-	width:60%;
-	overflow-y: scroll; height:300px;
+    /*height: 250;*/
+    width:60%;
+    overflow-y: scroll; height:300px;
 }
 /*td, th {
   padding: 1px 4px;
@@ -18,6 +42,7 @@
 #table-names {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     border-collapse: collapse;
+
     width: 100%;
 }
 
@@ -37,4 +62,34 @@
     background-color: #4CAF50;
     background-color: lightblue;
     color: white;
+}
+.clear{
+    clear:both;
+}
+
+#target {
+  margin: 40px 0;
+}
+.chartt {
+  margin-bottom: 40px;
+}
+.star-title {
+  font-size: 14px;
+}
+.star-label {
+  font-size: 11px;
+}
+.star-origin {
+  fill: #333;
+}
+.star-axis {
+  stroke: #ccc;
+  stroke-width: 2px;
+  stroke-dasharray: 4 5;
+}
+.star-path {
+  stroke: #444;
+  stroke-width: 2px;
+  fill: #709CB1;
+  fill-opacity: 0.6;
 }
