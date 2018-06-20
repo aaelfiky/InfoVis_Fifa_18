@@ -150,7 +150,7 @@ function updateTable(data_,index,atts,name) {
   var data = data_;
 
   // join new data with old elements, if any
-  var title = d3.select("#table-names").select("caption").text(name + " League");
+  var title = d3.select("#table-names").select("caption").text(name + " League Top 100 Players");
   var rows = d3.select("#table-names").select("tbody").selectAll('tr')
       .data(data);
 
@@ -226,7 +226,7 @@ function buildTable(data,atts_){
 
   // create table, etc.
     var table = d3.select('#names').append("div").attr("id","names_sub").append('table').attr("id","table-names");
-    var title = table.append("caption").text(names_[0].league);
+    var title = table.append("caption");
     var thead = table.append('thead');
     var tbody = table.append('tbody');
 
@@ -406,7 +406,7 @@ function buildMap(data_,update,name){
         }
       });
       var svg_ = d3.select("#choro").select(".map");
-      var title = d3.select("#choro").select(".l-name").text(name + " League").style("fill","darkblue");
+      var title = d3.select("#choro").select(".l-name").text(name + " League Distributions").style("fill","darkblue");
       svg_.call(tip);
       // console.log("D FEATURES: ",data.features);
       var selection = d3.select("#choro").select("svg")
@@ -461,7 +461,7 @@ function buildMap(data_,update,name){
           .attr("y", 15)
           .attr("text-anchor", "middle")
           .style("font", "16px sans-serif").style("font-weight","bold").style("fill","darkblue")
-          .text(name + " League");
+          .text(name + " League Distributions");
 
 
 
@@ -556,7 +556,7 @@ function buildHorizontal(vals,update){
   y.domain(data.map(function(d) { return d.Attribute; }));
 
   if(update){
-    var title = d3.select("#pie").select(".p-name").text(name).style("fill","darkblue");
+    var title = d3.select("#pie").select(".p-name").text(name + "'s Attributes");
     data.forEach(function(d) {
       d.Value = +d.Value;
     });
@@ -588,8 +588,8 @@ function buildHorizontal(vals,update){
             .attr("x", (width / 2))
             .attr("y", 0 - (margin.top / 2))
             .attr("text-anchor", "middle")
-            .style("font-size", "16px").style("fill","darkblue")
-            .text(name);
+            .style("font", "16px sans-serif").style("font-weight","bold").style("fill","darkblue")
+            .text(name + "'s Attributes");
 
     // format the data
     data.forEach(function(d) {

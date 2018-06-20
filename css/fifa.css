@@ -48,7 +48,8 @@
 }
 
 caption{
-  font: 20px sans-serif;
+  font-size: 17px;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   color: white;
   background: lightblue;
 }
