@@ -211,19 +211,19 @@ function updateTable(data_,index,atts) {
 
 function buildTable(data,atts_){
 
-  var leagues = ["Spanish","English","French","German","Italian"];
-	var names_ = data;
-	var keys = ["Name","Overall","Nationality","League"];
+    var leagues = ["Spanish","English","French","German","Italian"];
+  	var names_ = data;
+  	var keys = ["Name","Overall","Nationality","League"];
 
 
-	   var table_data = names_[0].names;
+    var table_data = names_[0].names;
 
   // var columns = ["Variable", "Value"];
     var columns = keys;
 
 
   // create table, etc.
-    var table = d3.select('#names').append('table').attr("id","table-names");
+    var table = d3.select('#names').append("div").attr("id","names_sub").append('table').attr("id","table-names");
     var thead = table.append('thead');
     var tbody = table.append('tbody');
 
@@ -255,9 +255,9 @@ function buildChart(avgs,names,atts_,all_nats){
 
 
 
-	var margin = {top: 20, right: 20, bottom: 40, left: 40},
-	    width = 540 - margin.left - margin.right,
-	    height = 470 - margin.top - margin.bottom;
+	var margin = {top: 50, right: 20, bottom: 40, left: 40},
+	    width = 440 - margin.left - margin.right,
+	    height = 370 - margin.top - margin.bottom;
 	var chart = d3.select("#chart")
 	    .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -767,7 +767,7 @@ function buildHorizontal(vals,update){
   }
 
 
-  var svg = d3.select("#pie").append("svg").attr("id","atts")
+  var svg = d3.select("#names").append("svg").attr("id","pie").append("svg").attr("id","atts")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
