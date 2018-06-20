@@ -1,4 +1,4 @@
-d3.csv("/Data/complete.csv", function(data) {
+d3.csv("Data/complete.csv", function(data) {
 
 
   var leagues = ["Spanish","English","French","German","Italian"];
