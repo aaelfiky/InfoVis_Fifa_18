@@ -96,19 +96,27 @@ d3.csv("/Data/complete.csv", function(data) {
 		names_.push({league:l,names:finalArray.slice(0,100)});
 
 	}
+  var all_nats = [];
 
-  var nats = names_[0].names.map(a => a.Nationality);
 
-	var counts = {};
-	nats.forEach(function(d) {
-	  if (!counts[d]) {
-	    counts[d] = 0;
-	  }
-	  counts[d]++;
-	});
+  for (var n = 0; n<names_.length; n++){
 
-	var natCounts = d3.entries(counts);
-  console.log(natCounts);
+    var nats = names_[n].names.map(a => a.Nationality);
+
+  	var counts = {};
+  	nats.forEach(function(d) {
+  	  if (!counts[d]) {
+  	    counts[d] = 0;
+  	  }
+  	  counts[d]++;
+  	});
+
+  	var natCounts = d3.entries(counts);
+    all_nats.push({"League":names_[n].league,"Nats":natCounts});
+
+  }
+
+  // console.log(all_nats);
 
 
 	// var other = 0;
@@ -130,10 +138,10 @@ d3.csv("/Data/complete.csv", function(data) {
 
 
   // console.log(atts_);
-  buildChart(avgs,names_,atts_);
+  buildChart(avgs,names_,atts_,all_nats);
   // buildPie(data,false);
   buildTable(names_,atts_);
-  buildMap(natCounts);
+  buildMap(all_nats[0].Nats,false);
   buildHorizontal(atts_[0].atts[0],false);
 });
 
@@ -236,7 +244,7 @@ function buildTable(data,atts_){
 }
 
 
-function buildChart(avgs,names,atts_){
+function buildChart(avgs,names,atts_,all_nats){
 
 	var leagues = ["Spanish","English","French","German","Italian"];
 	// var avgs = [];
@@ -245,12 +253,22 @@ function buildChart(avgs,names,atts_){
 	var keys = ["Name","Overall","Nationality","League"];
 
 
+
+
 	var margin = {top: 20, right: 20, bottom: 40, left: 40},
 	    width = 540 - margin.left - margin.right,
 	    height = 470 - margin.top - margin.bottom;
 	var chart = d3.select("#chart")
 	    .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      chart.append("text")
+                .attr("class","chart-name")
+                .attr("x", (width / 2))
+                .attr("y", 0 )
+                .attr("text-anchor", "middle")
+                .style("font", "16px sans-serif").style("fill","darkblue").style("font-weight","bold")
+                .text("Overall Ratings");
 	// Add scales
 	var xScale = d3.scaleBand()
 	    .domain(avgs.map(function(d) { return d.league; }))
@@ -307,6 +325,7 @@ function buildChart(avgs,names,atts_){
     var rect_ = d3.select("#chart").select("g").selectAll("rect").on('click',(d,i)=>{
       console.log(i);
       updateTable(names_[i-5].names,i-5,atts_[i-5]);
+      buildMap(all_nats[i-5].Nats,true);
 
     })
 	}
@@ -492,7 +511,61 @@ function buildStar(){
 }
 
 
-function buildMap(data_){
+function buildMap(data_,update){
+
+  if(update){
+    console.log("D ",data_);
+    const path_ = d3.geoPath().projection(projection);
+    queue()
+      .defer(d3.json, 'js/world_countries.json')
+      .await(ready);
+
+    function ready(error, data) {
+
+      var populationById = {};
+      // console.log(data_);
+      data_.forEach(d => { populationById[d.key] = +d.value; });
+
+      console.log(populationById);
+      data.features.forEach(d => { d.population = populationById[d.properties.name]; });
+      data.features.forEach(function(d){
+        if(d.population == null){
+          d.population = 0;
+        }
+      });
+      var s = d3.select("#choro").select("svg")
+      .select(".map").select("countries").selectAll("path").data(data.features).enter().append('path')
+        .attr('d', path_).style('fill',
+        function(d){
+          // console.log(populationById[d.properties.name]);
+          if(populationById[d.properties.name]==null){
+            return "#f7f7f7";
+          }
+          else {return color(populationById[d.properties.name]);}
+      })
+      .style('stroke', 'white')
+      .style('opacity', 0.8)
+      .style('stroke-width', 0.3)
+      // tooltips
+      .on('mouseover',function(d){
+        tip.show(d);
+        d3.select(this)
+          .style('opacity', 1)
+          .style('stroke-width', 3);
+      })
+      .on('mouseout', function(d){
+        tip.hide(d);
+        d3.select(this)
+          .style('opacity', 0.8)
+          .style('stroke-width',0.3);
+      });
+    }
+    d3.select("#choro").select("svg")
+    .select(".map").select("countries")
+    .selectAll("path").exit().remove();
+    return;
+
+  }
   const format = d3.format(',');
 
   // Set tooltips
@@ -508,15 +581,15 @@ function buildMap(data_){
   const color = d3.scaleThreshold()
     .domain([
       1,
-      3,
-      6,
-      9,
+      4,
+      8,
       12,
-      15,
-      18,
-      21,
+      16,
+      20,
       24,
-      27
+      28,
+      32,
+      36
     ])
     .range([
       'rgb(247,251,255)',
@@ -565,9 +638,10 @@ function buildMap(data_){
       }
     });
     // console.log(data);
-    svg.append('g')
-      .attr('class', 'countries')
-      .selectAll('path')
+    var countries = svg.append('g')
+      .attr('class', 'countries');
+
+    var enter = countries.selectAll('path')
       .data(data.features)
       .enter().append('path')
         .attr('d', path)
@@ -575,7 +649,7 @@ function buildMap(data_){
           function(d){
             // console.log(populationById[d.properties.name]);
             if(populationById[d.properties.name]==null){
-              return "lightblue";
+              return "#f7f7f7";
             }
             else {return color(populationById[d.properties.name]);}
         })
@@ -596,6 +670,7 @@ function buildMap(data_){
             .style('stroke-width',0.3);
         });
 
+    enter.exit().remove();
     svg.append('path')
       .datum(topojson.mesh(data.features, (a, b) => a.key !== b.key))
       .attr('class', 'names')
@@ -670,7 +745,7 @@ function buildHorizontal(vals,update){
   y.domain(data.map(function(d) { return d.Attribute; }));
 
   if(update){
-    var title = d3.select("#pie").select(".p-name").text(name).style("fill","steelblue");
+    var title = d3.select("#pie").select(".p-name").text(name).style("fill","darkblue");
     data.forEach(function(d) {
       d.Value = +d.Value;
     });
@@ -702,7 +777,7 @@ function buildHorizontal(vals,update){
             .attr("x", (width / 2))
             .attr("y", 0 - (margin.top / 2))
             .attr("text-anchor", "middle")
-            .style("font-size", "16px").style("fill","steelblue")
+            .style("font-size", "16px").style("fill","darkblue")
             .text(name);
 
     // format the data
