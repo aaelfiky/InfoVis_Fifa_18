@@ -7,9 +7,6 @@ d3.csv("/Data/complete.csv", function(data) {
   var avgs = [];
 	var keys = ["Name","Overall","Nationality","League"];
 
-
-
-
   for (var i = 0; i < leagues.length; i++) {
   	var l = leagues[i];
   	var result = data.filter(function( obj ) {
@@ -50,8 +47,8 @@ d3.csv("/Data/complete.csv", function(data) {
 		});
 
     var finalArray_ = result.map(function (obj) { // ATTRIBUTES
-      return {Name:obj.name,Overall:Number(obj.overall),Pac:Number(obj.pac),
-        Sho:obj.sho,Pas:obj.pas,Dri:obj.dri,Def:obj.def,Phy:obj.phy};
+      return {Name:obj.name,Overall:Number(obj.overall),Pace:Number(obj.pac),
+        Shoot:obj.sho,Pass:obj.pas,Dri:obj.dri,Def:obj.def,Phy:obj.phy};
     });
 
     var finalArray_2 = result.map(function (obj) { // AVERAGES
@@ -100,17 +97,47 @@ d3.csv("/Data/complete.csv", function(data) {
 
 	}
 
+  var nats = names_[0].names.map(a => a.Nationality);
 
-  buildChart(avgs,names_);
-  buildPie(data,false);
+	var counts = {};
+	nats.forEach(function(d) {
+	  if (!counts[d]) {
+	    counts[d] = 0;
+	  }
+	  counts[d]++;
+	});
 
-  buildTable(names_);
-  buildMap();
-  buildHorizontal();
+	var natCounts = d3.entries(counts);
+  console.log(natCounts);
+
+
+	// var other = 0;
+
+
+	// var new_natCounts = [];
+  //
+	// for (var i = 0; i < natCounts.length; i++) {
+	// 	var tt = natCounts[i];
+  //
+	// 	if(tt.value <3){
+	// 		other = other+1;
+	// 	}
+	// 	else{
+	// 		new_natCounts.push({key:tt.key,value:tt.value});
+	// 	}
+	// }
+	// new_natCounts.push({key:"Other Nationalities",value:other});
+
+
+  // console.log(atts_);
+  buildChart(avgs,names_,atts_);
+  // buildPie(data,false);
+  buildTable(names_,atts_);
+  buildMap(natCounts);
+  buildHorizontal(atts_[0].atts[0],false);
 });
 
-function updateTable(data_) {
-
+function updateTable(data_,index,atts) {
 
   var data = data_;
 
@@ -118,14 +145,20 @@ function updateTable(data_) {
   var rows = d3.select("#table-names").select("tbody").selectAll('tr')
       .data(data);
 
+  // console.log("RW: ",rows);
+
   var rowsEnter = rows.enter()
       .append('tr');
+
+
 
   rowsEnter.append('td')
       .attr("class", "NameCol")
       .text(function(d) {
           return d.Name;
       });
+
+  // console.log("ROWS: ",rowsEnter);
   rowsEnter.append('td')
       .attr("class", "OverallCol")
       .text(function(d) {
@@ -156,6 +189,11 @@ function updateTable(data_) {
       return d.League;
   });
 
+  d3.select("#table-names").select("tbody").selectAll("tr").on("click",function(d,i){
+    // console.log("T: ",atts.atts[i]);
+    buildHorizontal(atts.atts[i],true);
+  });
+
 
   rows.exit().remove();
 
@@ -163,7 +201,7 @@ function updateTable(data_) {
 
 };
 
-function buildTable(data){
+function buildTable(data,atts_){
 
   var leagues = ["Spanish","English","French","German","Italian"];
 	var names_ = data;
@@ -192,13 +230,13 @@ function buildTable(data){
 
     // update function
 
-    updateTable(names_[0].names);
+    updateTable(names_[0].names,0,atts_[0]);
 
 
 }
 
 
-function buildChart(avgs,names){
+function buildChart(avgs,names,atts_){
 
 	var leagues = ["Spanish","English","French","German","Italian"];
 	// var avgs = [];
@@ -258,10 +296,17 @@ function buildChart(avgs,names){
 		    .attr("class", "svgRect");
 
 		bars.data(dataSet).exit().remove();
+
+    var on_over = d3.select("#chart").select("g").selectAll("rect").on("mouseover",function(d){
+      d3.select(this).style("fill","lightblue").style("cursor","pointer");
+    });
+    var on_out = d3.select("#chart").select("g").selectAll("rect").on("mouseout",function(d){
+      d3.select(this).style("fill","steelblue");
+    });
     //
     var rect_ = d3.select("#chart").select("g").selectAll("rect").on('click',(d,i)=>{
       console.log(i);
-      updateTable(names_[i-5].names);
+      updateTable(names_[i-5].names,i-5,atts_[i-5]);
 
     })
 	}
@@ -369,20 +414,20 @@ function buildPie(data){
 	    .attr("transform","translate(" + width / 2 +"," + height / 2 + ")");
 
     //Append g elements
-    var g = svg.selectAll(".arc")
-        .data(pie(new_natCounts))
-        .enter().append("g")
-        .attr("class","arc");
-    //Append the path of the arc
-    g.append("path")
-        .attr("d",arc)
-        .style("fill",function(d){return color(d.data.key);})
+  var g = svg.selectAll(".arc")
+      .data(pie(new_natCounts))
+      .enter().append("g")
+      .attr("class","arc");
+  //Append the path of the arc
+  g.append("path")
+      .attr("d",arc)
+      .style("fill",function(d){return color(d.data.key);})
 
-    //Append the text (labels)
-    g.append("text")
-        .attr("transform",function(d){return "translate(" + labelArc.centroid(d) + ")";})
-        .attr("dy",".35em")
-        .text(function(d){return d.data.key; });
+  //Append the text (labels)
+  g.append("text")
+      .attr("transform",function(d){return "translate(" + labelArc.centroid(d) + ")";})
+      .attr("dy",".35em")
+      .text(function(d){return d.data.key; });
 
 }
 
@@ -447,14 +492,14 @@ function buildStar(){
 }
 
 
-function buildMap(){
+function buildMap(data_){
   const format = d3.format(',');
 
   // Set tooltips
   const tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-10, 0])
-    .html(d => `<strong>Country: </strong><span class='details'>${d.properties.name}<br></span><strong>Population: </strong><span class='details'>${format(d.population)}</span>`);
+    .html(d => `<strong>Country: </strong><span class='details'>${d.properties.name}<br></span><strong>Count: </strong><span class='details'>${format(d.population)}</span>`);
 
   const margin = {top: 0, right: 0, bottom: 0, left: 0};
   const width = 960 - margin.left - margin.right;
@@ -462,16 +507,16 @@ function buildMap(){
 
   const color = d3.scaleThreshold()
     .domain([
-      10000,
-      100000,
-      500000,
-      1000000,
-      5000000,
-      10000000,
-      50000000,
-      100000000,
-      500000000,
-      1500000000
+      1,
+      3,
+      6,
+      9,
+      12,
+      15,
+      18,
+      21,
+      24,
+      27
     ])
     .range([
       'rgb(247,251,255)',
@@ -504,22 +549,36 @@ function buildMap(){
 
   queue()
     .defer(d3.json, 'js/world_countries.json')
-    .defer(d3.tsv, 'Data/world_population.tsv')
+    // .defer(d3.tsv, 'world_population.tsv')
     .await(ready);
 
   function ready(error, data, population) {
-    const populationById = {};
 
-    population.forEach(d => { populationById[d.id] = +d.population; });
-    data.features.forEach(d => { d.population = populationById[d.id] });
-
+    var populationById = {};
+    // console.log(data_);
+    data_.forEach(d => { populationById[d.key] = +d.value; });
+    // console.log(populationById);
+    data.features.forEach(d => { d.population = populationById[d.properties.name]; });
+    data.features.forEach(function(d){
+      if(d.population == null){
+        d.population = 0;
+      }
+    });
+    // console.log(data);
     svg.append('g')
       .attr('class', 'countries')
       .selectAll('path')
       .data(data.features)
       .enter().append('path')
         .attr('d', path)
-        .style('fill', d => color(populationById[d.id]))
+        .style('fill',
+          function(d){
+            // console.log(populationById[d.properties.name]);
+            if(populationById[d.properties.name]==null){
+              return "lightblue";
+            }
+            else {return color(populationById[d.properties.name]);}
+        })
         .style('stroke', 'white')
         .style('opacity', 0.8)
         .style('stroke-width', 0.3)
@@ -538,21 +597,63 @@ function buildMap(){
         });
 
     svg.append('path')
-      .datum(topojson.mesh(data.features, (a, b) => a.id !== b.id))
+      .datum(topojson.mesh(data.features, (a, b) => a.key !== b.key))
       .attr('class', 'names')
       .attr('d', path);
   }
 }
 
 
-function buildHorizontal(){
-  var data = [{"Attribute":"Pace","Value":33},{"Attribute":"Sho","Value":12},{"Attribute":"pass","Value":41},
-  {"Attribute":"Dri","Value":16},{"Attribute":"Phy","Value":59},{"Attribute":"Def","Value":38}];
 
+
+function updateHorizontal(data_){
+
+  var y = d3.scaleBand()
+            .range([350, 0])
+            .padding(0.1);
+
+  var x = d3.scaleLinear()
+            .range([0, 740]);
+
+  x.domain([0, d3.max(data_, function(d){ return d.Value; })])
+  y.domain(data_.map(function(d) { return d.Attribute; }));
+
+
+  console.log(data_);
+
+  d3.select("#horz").select("#atts").selectAll(".bar")
+      .data(data_)
+    .enter().append("rect")
+      .attr("class", "bar")
+      //.attr("x", function(d) { return x(d.sales); })
+      .attr("width", function(d) {return x(d.Value); } )
+      .attr("y", function(d) { return y(d.Attribute); })
+      .attr("height", y.bandwidth()).style("fill","steelblue");
+
+
+
+
+}
+
+
+function buildHorizontal(vals,update){
+  // console.log(vals);
+
+
+
+  var data_ = [];
+  var keys = Object.keys(vals);
+  var values = Object.values(vals);
+
+  var name = values[0];
+  for(var i = 2; i<values.length; i++){
+    data_.push({"Attribute":keys[i],"Value":Number(values[i])});
+  }
+  var data = data_;
   // set the dimensions and margins of the graph
-  var margin = {top: 20, right: 20, bottom: 30, left: 40},
-      width = 800 - margin.left - margin.right,
-      height = 400 - margin.top - margin.bottom;
+  var margin = {top: 60, right: 20, bottom: 30, left: 40},
+      width = 600 - margin.left - margin.right,
+      height = 300 - margin.top - margin.bottom;
 
   // set the ranges
   var y = d3.scaleBand()
@@ -565,23 +666,58 @@ function buildHorizontal(){
   // append the svg object to the body of the page
   // append a 'group' element to 'svg'
   // moves the 'group' element to the top left margin
-  var title = d3.select("#horz").append("h3").text("Cristiano Ronaldo").style("text-align","center")
-  .style("font-family","sans-serif").style("color","steelblue");
-  var svg = d3.select("#horz").append("svg")
+  x.domain([0, d3.max(data, function(d){ return d.Value; })])
+  y.domain(data.map(function(d) { return d.Attribute; }));
+
+  if(update){
+    var title = d3.select("#pie").select(".p-name").text(name).style("fill","steelblue");
+    data.forEach(function(d) {
+      d.Value = +d.Value;
+    });
+
+    var s = d3.select("#pie").select("#atts").select("g").selectAll(".bar").remove().exit().data(data);
+
+    var enter = s.enter().append("rect").attr("class","bar").transition().duration(1000).attr("width", function(d) {return x(d.Value); } )
+        .attr("y", function(d) { return y(d.Attribute); })
+        .attr("height", y.bandwidth()).style("fill","steelblue");
+    return;
+  }
+
+
+  // var title = d3.select("#pie").append("h3").text(name).style("text-align","center")
+  // .style("font-family","sans-serif").style("color","steelblue");
+
+
+
+
+  var svg = d3.select("#pie").append("svg").attr("id","atts")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
+    svg.append("text")
+            .attr("class","p-name")
+            .attr("x", (width / 2))
+            .attr("y", 0 - (margin.top / 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px").style("fill","steelblue")
+            .text(name);
+
     // format the data
     data.forEach(function(d) {
       d.Value = +d.Value;
     });
 
+
+
+
     // Scale the range of the data in the domains
-    x.domain([0, d3.max(data, function(d){ return d.Value; })])
-    y.domain(data.map(function(d) { return d.Attribute; }));
+    // x.domain([0, d3.max(data, function(d){ return d.Value; })])
+    // y.domain(data.map(function(d) { return d.Attribute; }));
+
+
     //y.domain([0, d3.max(data, function(d) { return d.sales; })]);
 
     // append the rectangles for the bar chart
@@ -593,13 +729,20 @@ function buildHorizontal(){
         .attr("width", function(d) {return x(d.Value); } )
         .attr("y", function(d) { return y(d.Attribute); })
         .attr("height", y.bandwidth()).style("fill","steelblue");
+    // updateHorizontal(data);
 
     // add the x Axis
-    svg.append("g")
+    svg.append("g").attr("class","x-axis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
     // add the y Axis
-    svg.append("g")
+    svg.append("g").attr("class","y-axis")
         .call(d3.axisLeft(y));
+
+    console.log(data);
+
+
+
 }
+

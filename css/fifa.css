@@ -1,5 +1,7 @@
 #pie{
-    float:right;
+    /* float:right; */
+    height: 410px;
+    width: 700px;
 }
 .arc text {
     font: 8.75px sans-serif;
@@ -168,3 +170,4 @@ text{
 .details{
   color: white;
 }
+
