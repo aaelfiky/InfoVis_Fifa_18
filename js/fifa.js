@@ -512,60 +512,6 @@ function buildStar(){
 
 
 function buildMap(data_,update){
-
-  if(update){
-    console.log("D ",data_);
-    const path_ = d3.geoPath().projection(projection);
-    queue()
-      .defer(d3.json, 'js/world_countries.json')
-      .await(ready);
-
-    function ready(error, data) {
-
-      var populationById = {};
-      // console.log(data_);
-      data_.forEach(d => { populationById[d.key] = +d.value; });
-
-      console.log(populationById);
-      data.features.forEach(d => { d.population = populationById[d.properties.name]; });
-      data.features.forEach(function(d){
-        if(d.population == null){
-          d.population = 0;
-        }
-      });
-      var s = d3.select("#choro").select("svg")
-      .select(".map").select("countries").selectAll("path").data(data.features).enter().append('path')
-        .attr('d', path_).style('fill',
-        function(d){
-          // console.log(populationById[d.properties.name]);
-          if(populationById[d.properties.name]==null){
-            return "#f7f7f7";
-          }
-          else {return color(populationById[d.properties.name]);}
-      })
-      .style('stroke', 'white')
-      .style('opacity', 0.8)
-      .style('stroke-width', 0.3)
-      // tooltips
-      .on('mouseover',function(d){
-        tip.show(d);
-        d3.select(this)
-          .style('opacity', 1)
-          .style('stroke-width', 3);
-      })
-      .on('mouseout', function(d){
-        tip.hide(d);
-        d3.select(this)
-          .style('opacity', 0.8)
-          .style('stroke-width',0.3);
-      });
-    }
-    d3.select("#choro").select("svg")
-    .select(".map").select("countries")
-    .selectAll("path").exit().remove();
-    return;
-
-  }
   const format = d3.format(',');
 
   // Set tooltips
@@ -604,6 +550,74 @@ function buildMap(data_,update){
       'rgb(3,19,43)'
     ]);
 
+    const projection = d3.geoRobinson()
+      .scale(148)
+      .rotate([352, 0, 0])
+      .translate( [width / 2, height / 2]);
+
+    const path = d3.geoPath().projection(projection);
+
+  if(update){
+
+    queue()
+      .defer(d3.json, 'js/world_countries.json')
+      .await(ready);
+
+    function ready(error, data) {
+
+      var populationById = {};
+      // console.log(data_);
+      data_.forEach(d => { populationById[d.key] = +d.value; });
+
+      // console.log("POP BY ID: ",populationById);
+      data.features.forEach(d => { d.population = populationById[d.properties.name]; });
+      data.features.forEach(function(d){
+        if(d.population == null){
+          d.population = 0;
+        }
+      });
+      var svg_ = d3.select("#choro").select(".map");
+      svg_.call(tip);
+      // console.log("D FEATURES: ",data.features);
+      var selection = d3.select("#choro").select("svg")
+      .select(".map").select(".countries").selectAll("path");
+
+
+      // console.log(selection);
+      var update_ = selection.data(data.features).enter();
+
+      var update_path = selection.attr('d', path).style('fill',
+        function(d){
+          if(populationById[d.properties.name]==null){
+            return "#f7f7f7";
+          }
+          else {return color(populationById[d.properties.name]);}
+      })
+      .style('stroke', 'white')
+      .style('opacity', 0.8)
+      .style('stroke-width', 0.3)
+      // tooltips
+      .on('mouseover',function(d){
+        console.log(d);
+        tip.show(d);
+        d3.select(this)
+          .style('opacity', 1)
+          .style('stroke-width', 3);
+      })
+      .on('mouseout', function(d){
+        tip.hide(d);
+        d3.select(this)
+          .style('opacity', 0.8)
+          .style('stroke-width',0.3);
+      });
+    }
+    d3.select("#choro").select("svg")
+    .select(".map").select(".countries")
+    .selectAll("path").exit().remove();
+    return;
+
+  }
+
   const svg = d3.select('#choro')
     .append('svg')
     .attr('width', width)
@@ -611,33 +625,22 @@ function buildMap(data_,update){
     .append('g')
     .attr('class', 'map');
 
-  const projection = d3.geoRobinson()
-    .scale(148)
-    .rotate([352, 0, 0])
-    .translate( [width / 2, height / 2]);
-
-  const path = d3.geoPath().projection(projection);
-
   svg.call(tip);
 
   queue()
     .defer(d3.json, 'js/world_countries.json')
-    // .defer(d3.tsv, 'world_population.tsv')
     .await(ready);
 
   function ready(error, data, population) {
 
     var populationById = {};
-    // console.log(data_);
     data_.forEach(d => { populationById[d.key] = +d.value; });
-    // console.log(populationById);
     data.features.forEach(d => { d.population = populationById[d.properties.name]; });
     data.features.forEach(function(d){
       if(d.population == null){
         d.population = 0;
       }
     });
-    // console.log(data);
     var countries = svg.append('g')
       .attr('class', 'countries');
 
@@ -647,7 +650,6 @@ function buildMap(data_,update){
         .attr('d', path)
         .style('fill',
           function(d){
-            // console.log(populationById[d.properties.name]);
             if(populationById[d.properties.name]==null){
               return "#f7f7f7";
             }
@@ -681,34 +683,34 @@ function buildMap(data_,update){
 
 
 
-function updateHorizontal(data_){
-
-  var y = d3.scaleBand()
-            .range([350, 0])
-            .padding(0.1);
-
-  var x = d3.scaleLinear()
-            .range([0, 740]);
-
-  x.domain([0, d3.max(data_, function(d){ return d.Value; })])
-  y.domain(data_.map(function(d) { return d.Attribute; }));
-
-
-  console.log(data_);
-
-  d3.select("#horz").select("#atts").selectAll(".bar")
-      .data(data_)
-    .enter().append("rect")
-      .attr("class", "bar")
-      //.attr("x", function(d) { return x(d.sales); })
-      .attr("width", function(d) {return x(d.Value); } )
-      .attr("y", function(d) { return y(d.Attribute); })
-      .attr("height", y.bandwidth()).style("fill","steelblue");
-
-
-
-
-}
+// function updateHorizontal(data_){
+//
+//   var y = d3.scaleBand()
+//             .range([350, 0])
+//             .padding(0.1);
+//
+//   var x = d3.scaleLinear()
+//             .range([0, 740]);
+//
+//   x.domain([0, d3.max(data_, function(d){ return d.Value; })])
+//   y.domain(data_.map(function(d) { return d.Attribute; }));
+//
+//
+//   console.log(data_);
+//
+//   d3.select("#horz").select("#atts").selectAll(".bar")
+//       .data(data_)
+//     .enter().append("rect")
+//       .attr("class", "bar")
+//       //.attr("x", function(d) { return x(d.sales); })
+//       .attr("width", function(d) {return x(d.Value); } )
+//       .attr("y", function(d) { return y(d.Attribute); })
+//       .attr("height", y.bandwidth()).style("fill","steelblue");
+//
+//
+//
+//
+// }
 
 
 function buildHorizontal(vals,update){
@@ -750,19 +752,19 @@ function buildHorizontal(vals,update){
       d.Value = +d.Value;
     });
 
-    var s = d3.select("#pie").select("#atts").select("g").selectAll(".bar").remove().exit().data(data);
+    var selection = d3.select("#pie").select("#atts").select("g").selectAll(".bar");
+    var update = selection.data(data);
 
-    var enter = s.enter().append("rect").attr("class","bar").transition().duration(1000).attr("width", function(d) {return x(d.Value); } )
+
+    var enter_ = selection.enter().append("rect").attr("class","bar");
+
+    var attrs_ = selection.transition().duration(700).attr("width", function(d) {return x(d.Value); } )
         .attr("y", function(d) { return y(d.Attribute); })
         .attr("height", y.bandwidth()).style("fill","steelblue");
+
+    selection.exit().remove();
     return;
   }
-
-
-  // var title = d3.select("#pie").append("h3").text(name).style("text-align","center")
-  // .style("font-family","sans-serif").style("color","steelblue");
-
-
 
 
   var svg = d3.select("#pie").append("svg").attr("id","atts")
@@ -800,7 +802,6 @@ function buildHorizontal(vals,update){
         .data(data)
       .enter().append("rect")
         .attr("class", "bar")
-        //.attr("x", function(d) { return x(d.sales); })
         .attr("width", function(d) {return x(d.Value); } )
         .attr("y", function(d) { return y(d.Attribute); })
         .attr("height", y.bandwidth()).style("fill","steelblue");
