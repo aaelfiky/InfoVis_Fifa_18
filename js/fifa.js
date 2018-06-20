@@ -141,15 +141,16 @@ d3.csv("Data/complete.csv", function(data) {
   buildChart(avgs,names_,atts_,all_nats);
   // buildPie(data,false);
   buildTable(names_,atts_);
-  buildMap(all_nats[0].Nats,false);
+  buildMap(all_nats[0].Nats,false,all_nats[0].League);
   buildHorizontal(atts_[0].atts[0],false);
 });
 
-function updateTable(data_,index,atts) {
+function updateTable(data_,index,atts,name) {
 
   var data = data_;
 
   // join new data with old elements, if any
+  var title = d3.select("#table-names").select("caption").text(name + " League");
   var rows = d3.select("#table-names").select("tbody").selectAll('tr')
       .data(data);
 
@@ -217,6 +218,7 @@ function buildTable(data,atts_){
 
 
     var table_data = names_[0].names;
+    console.log(names_[0]);
 
   // var columns = ["Variable", "Value"];
     var columns = keys;
@@ -224,6 +226,7 @@ function buildTable(data,atts_){
 
   // create table, etc.
     var table = d3.select('#names').append("div").attr("id","names_sub").append('table').attr("id","table-names");
+    var title = table.append("caption").text(names_[0].league);
     var thead = table.append('thead');
     var tbody = table.append('tbody');
 
@@ -238,7 +241,7 @@ function buildTable(data,atts_){
 
     // update function
 
-    updateTable(names_[0].names,0,atts_[0]);
+    updateTable(names_[0].names,0,atts_[0],names_[0].league);
 
 
 }
@@ -324,8 +327,8 @@ function buildChart(avgs,names,atts_,all_nats){
     //
     var rect_ = d3.select("#chart").select("g").selectAll("rect").on('click',(d,i)=>{
       console.log(i);
-      updateTable(names_[i-5].names,i-5,atts_[i-5]);
-      buildMap(all_nats[i-5].Nats,true);
+      updateTable(names_[i-5].names,i-5,atts_[i-5],all_nats[i-5].League);
+      buildMap(all_nats[i-5].Nats,true,all_nats[i-5].League);
 
     })
 	}
@@ -337,181 +340,7 @@ function buildChart(avgs,names,atts_,all_nats){
 }
 
 
-function buildPie(data){
-
-	var leagues = ["Spanish","English","French","German","Italian"];
-	var names_ = [];
-	// var keys = ["Name","Overall","Nationality","League"];
-
-
-	for (var i = 0; i < leagues.length; i++) {
-		var l = leagues[i];
-		var x = document.createElement("IMG");
-
-		var result = data.filter(function( obj ) {
-		  return obj.league.includes(l);
-		});
-		var finalArray = result.map(function (obj) {
-		  return {Name:obj.name,Overall:Number(obj.overall),Nationality:obj.nationality,League:obj.league};
-		});
-
-		finalArray.sort(function(a, b){
-		    var keyA = (a.Overall),
-		        keyB = (b.Overall);
-		    // Compare the 2 dates
-		    if(keyA < keyB) return 1;
-		    if(keyA > keyB) return -1;
-		    return 0;
-		});
-
-		names_.push({league:l,names:finalArray.slice(0,100)});
-
-
-	}
-
-
-	var nats = names_[0].names.map(a => a.Nationality);
-
-	var counts = {};
-	nats.forEach(function(d) {
-	  if (!counts[d]) {
-	    counts[d] = 0;
-	  }
-	  counts[d]++;
-	});
-
-	var natCounts = d3.entries(counts);
-
-	var other = 0;
-
-
-	var new_natCounts = [];
-
-	for (var i = 0; i < natCounts.length; i++) {
-		var tt = natCounts[i];
-
-		if(tt.value <3){
-			other = other+1;
-		}
-		else{
-			new_natCounts.push({key:tt.key,value:tt.value});
-		}
-	}
-	new_natCounts.push({key:"Other Nationalities",value:other});
-
-
-	var margin = {top:20 ,right:20, bottom:20, left:20},
-    width = 500 - margin.right - margin.left,
-    height = 500 - margin.top - margin.bottom,
-    radius = width/2;
-
-	// color range
-	var color = d3.scaleOrdinal()
-	.range(["#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1E88E5", "#1976D2"]);
-
-	//Arc generator
-	var arc = d3.arc()
-	    .outerRadius(radius-10)
-	    .innerRadius(0);
-
-	var labelArc = d3.arc()
-	    .outerRadius(radius - 50)
-	    .innerRadius(radius -50);
-
-	//Pie generator
-	var pie = d3.pie()
-	    .sort(function(a, b) {
-			return a.value>b.value;
-		})
-	    .value(function(d){return d.value;});
-
-	//Define svg
-	var svg = d3.select("#pie")
-	    .attr("width",width)
-	    .attr("height",height)
-	    .append("g")
-	    .attr("transform","translate(" + width / 2 +"," + height / 2 + ")");
-
-    //Append g elements
-  var g = svg.selectAll(".arc")
-      .data(pie(new_natCounts))
-      .enter().append("g")
-      .attr("class","arc");
-  //Append the path of the arc
-  g.append("path")
-      .attr("d",arc)
-      .style("fill",function(d){return color(d.data.key);})
-
-  //Append the text (labels)
-  g.append("text")
-      .attr("transform",function(d){return "translate(" + labelArc.centroid(d) + ")";})
-      .attr("dy",".35em")
-      .text(function(d){return d.data.key; });
-
-}
-
-function buildStar(){
-	var margin = {
-	  top: 36,
-	  right: 50,
-	  bottom: 20,
-	  left: 50
-	};
-	var width = 240 - margin.left - margin.right;
-	var height = 240 - margin.top - margin.bottom;
-	var labelMargin = 8;
-	var scale = d3.scaleLinear()
-	  .domain([0, 4])
-	  .range([0, 100])
-	d3.csv('Data/complete.csv')
-	  .row(function(d) {
-	    d.pac = +d.pac;
-	    d.sho = +d.sho;
-	    d.pas = +d.pas;
-	    d.dri = +d.dri;
-	    d.def = +d.def;
-	    d.phy = +d.phy;
-	      return d;
-	  })
-	  .get(function(error, rows) {
-	    var star = d3.starPlot()
-	      .width(width)
-	      .accessors([
-	        function(d) { return scale(d.pac); },
-	        function(d) { return scale(d.sho); },
-	        function(d) { return scale(d.pas); },
-	        function(d) { return scale(d.dri); },
-	        function(d) { return scale(d.def); },
-	        function(d) { return scale(d.phy); },
-	      ])
-	      .labels([
-	        'pac',
-	        'sho',
-	        'pas',
-	        'dri',
-	        'def',
-	        'phy',
-	      ])
-	      .title(function(d) { return d.name; })
-	      .margin(margin)
-	      .labelMargin(labelMargin)
-	      r = rows.slice(0,1)
-	      r.forEach(function(d, i) {
-	      star.includeLabels(i+1);
-	      d3.select('#target').append('svg')
-	        .attr('class', 'chartt')
-	        .attr('width', width + margin.left + margin.right)
-	        .attr('height', width + margin.top + margin.bottom)
-	        .append('g')
-	        .datum(d)
-	        .call(star)
-	        // console.log((d))
-	    });
-	  });
-}
-
-
-function buildMap(data_,update){
+function buildMap(data_,update,name){
   const format = d3.format(',');
 
   // Set tooltips
@@ -520,9 +349,9 @@ function buildMap(data_,update){
     .offset([-10, 0])
     .html(d => `<strong>Country: </strong><span class='details'>${d.properties.name}<br></span><strong>Count: </strong><span class='details'>${format(d.population)}</span>`);
 
-  const margin = {top: 0, right: 0, bottom: 0, left: 0};
-  const width = 960 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
+  const margin = {top: -30, right: 0, bottom: 0, left: 0};
+  const width = 750 - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
 
   const color = d3.scaleThreshold()
     .domain([
@@ -551,7 +380,7 @@ function buildMap(data_,update){
     ]);
 
     const projection = d3.geoRobinson()
-      .scale(148)
+      .scale(120)
       .rotate([352, 0, 0])
       .translate( [width / 2, height / 2]);
 
@@ -577,6 +406,7 @@ function buildMap(data_,update){
         }
       });
       var svg_ = d3.select("#choro").select(".map");
+      var title = d3.select("#choro").select(".l-name").text(name + " League").style("fill","darkblue");
       svg_.call(tip);
       // console.log("D FEATURES: ",data.features);
       var selection = d3.select("#choro").select("svg")
@@ -624,6 +454,16 @@ function buildMap(data_,update){
     .attr('height', height)
     .append('g')
     .attr('class', 'map');
+
+  svg.append("text")
+          .attr("class","l-name")
+          .attr("x", (width / 2))
+          .attr("y", 15)
+          .attr("text-anchor", "middle")
+          .style("font", "16px sans-serif").style("font-weight","bold").style("fill","darkblue")
+          .text(name + " League");
+
+
 
   svg.call(tip);
 
@@ -680,37 +520,6 @@ function buildMap(data_,update){
   }
 }
 
-
-
-
-// function updateHorizontal(data_){
-//
-//   var y = d3.scaleBand()
-//             .range([350, 0])
-//             .padding(0.1);
-//
-//   var x = d3.scaleLinear()
-//             .range([0, 740]);
-//
-//   x.domain([0, d3.max(data_, function(d){ return d.Value; })])
-//   y.domain(data_.map(function(d) { return d.Attribute; }));
-//
-//
-//   console.log(data_);
-//
-//   d3.select("#horz").select("#atts").selectAll(".bar")
-//       .data(data_)
-//     .enter().append("rect")
-//       .attr("class", "bar")
-//       //.attr("x", function(d) { return x(d.sales); })
-//       .attr("width", function(d) {return x(d.Value); } )
-//       .attr("y", function(d) { return y(d.Attribute); })
-//       .attr("height", y.bandwidth()).style("fill","steelblue");
-//
-//
-//
-//
-// }
 
 
 function buildHorizontal(vals,update){
@@ -787,15 +596,7 @@ function buildHorizontal(vals,update){
       d.Value = +d.Value;
     });
 
-
-
-
     // Scale the range of the data in the domains
-    // x.domain([0, d3.max(data, function(d){ return d.Value; })])
-    // y.domain(data.map(function(d) { return d.Attribute; }));
-
-
-    //y.domain([0, d3.max(data, function(d) { return d.sales; })]);
 
     // append the rectangles for the bar chart
     svg.selectAll(".bar")

@@ -46,6 +46,12 @@
   overflow-y: scroll; height:300px;
   width: 90%;
 }
+
+caption{
+  font: 20px sans-serif;
+  color: white;
+  background: lightblue;
+}
 /*td, th {
   padding: 1px 4px;
 }*/
@@ -54,7 +60,7 @@
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     border-collapse: collapse;
     width:100%;
-    overflow-y: scroll; height:300px;
+    /* overflow-y: scroll; max-height:200px; */
     /* width: 100%; */
 }
 
